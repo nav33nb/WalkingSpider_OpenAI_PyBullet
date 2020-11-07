@@ -211,4 +211,20 @@ class WalkingSpiderEnv(gym.Env):
       return self.is_falling()
     
     def render(self, mode='human', close=False):
-      pass
+      zed_camera_joint = 5
+      ls = p.getLinkState(self.robotId ,zed_camera_joint, computeForwardKinematics=True)
+      camInfo = p.getDebugVisualizerCamera()
+      camPos = ls[0]
+      camOrn = ls[1]
+      camMat = p.getMatrixFromQuaternion(camOrn)
+      upVector = [0,0,1]
+      forwardVec = [camMat[0],camMat[3],camMat[6]]
+      #sideVec =  [camMat[1],camMat[4],camMat[7]]
+      camUpVec =  [camMat[2],camMat[5],camMat[8]]
+      camTarget = [camPos[0]+forwardVec[0]*10,camPos[1]+forwardVec[1]*10,camPos[2]+forwardVec[2]*10]
+      camUpTarget = [camPos[0]+camUpVec[0],camPos[1]+camUpVec[1],camPos[2]+camUpVec[2]]
+  
+      viewMat = p.computeViewMatrix(camPos, camTarget, camUpVec)
+      projMat = camInfo[3]
+      #p.getCameraImage(320,200,viewMatrix=viewMat,projectionMatrix=projMat, flags=p.ER_NO_SEGMENTATION_MASK, renderer=p.      ER_BULLET_HARDWARE_OPENGL)
+      p.getCameraImage(320,400,viewMatrix=viewMat,projectionMatrix=projMat, renderer=p.ER_BULLET_HARDWARE_OPENGL)
