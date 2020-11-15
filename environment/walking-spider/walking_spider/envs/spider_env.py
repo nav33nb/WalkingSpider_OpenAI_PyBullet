@@ -10,6 +10,8 @@ import time
 import math
 import numpy as np
 
+from PIL import Image
+
 
 class WalkingSpiderEnv(gym.Env):
     metadata = {
@@ -23,6 +25,9 @@ class WalkingSpiderEnv(gym.Env):
 
     def __init__(self, render=True):
         super(WalkingSpiderEnv, self).__init__()
+
+        self.image_num = 1
+        
         self.action_space = spaces.Box(
             low=-1, high=1, shape=(10,), dtype=np.float32)
         self.observation_space = spaces.Box(
@@ -210,7 +215,7 @@ class WalkingSpiderEnv(gym.Env):
     def compute_done(self):
       return self.is_falling()
     
-    def render(self, mode='human', close=False):
+    def render(self, mode='human', close=False, image_sequence = False):
       zed_camera_joint = 5
       ls = p.getLinkState(self.robotId ,zed_camera_joint, computeForwardKinematics=True)
       camInfo = p.getDebugVisualizerCamera()
@@ -226,5 +231,10 @@ class WalkingSpiderEnv(gym.Env):
   
       viewMat = p.computeViewMatrix(camPos, camTarget, camUpVec)
       projMat = camInfo[3]
-      #p.getCameraImage(320,200,viewMatrix=viewMat,projectionMatrix=projMat, flags=p.ER_NO_SEGMENTATION_MASK, renderer=p.      ER_BULLET_HARDWARE_OPENGL)
-      p.getCameraImage(320,400,viewMatrix=viewMat,projectionMatrix=projMat, renderer=p.ER_BULLET_HARDWARE_OPENGL)
+      width, height, rgbImg, depthImg, segImg = p.getCameraImage(320,400,viewMatrix=viewMat,projectionMatrix=projMat, renderer=p.ER_BULLET_HARDWARE_OPENGL)
+
+      if(image_sequence):
+          img = Image.fromarray(rgbImg)
+          img.save('rgb_images/testrgb_{}.png'.format(self.image_num))
+
+      self.image_num += 1
